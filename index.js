@@ -2,6 +2,7 @@ const express = require('express');
 const mysql = require('mysql2');
 var bodyParser = require('body-parser');
 const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
 const port = 3000;
@@ -10,10 +11,10 @@ app.use(cors());
 
 // Configuración de la conexión a la base de datos
 const connection = mysql.createConnection({
-  host: 'localhost',  // Cambia esto a la dirección de tu base de datos
-  user: 'root',
-  password: 'Casdds123*',
-  database: 'contratos'
+  host: process.env.HOST,  // Cambia esto a la dirección de tu base de datos
+  user: process.env.user,
+  password: process.env.PASSWORD,
+  database: process.env.DATABASE
 });
 
 // Conexión a la base de datos
