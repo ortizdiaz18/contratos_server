@@ -26,8 +26,14 @@ connection.connect(error => {
     console.log('Conexión exitosa a la base de datos');
   }
 });
+app.get('/', (req, res) => {
+ 
+          res.json({"message":"Esta ruta esta en desuso"});
+    
+});
 
 // Ruta para realizar consultas
+
 app.get('/pendientes', (req, res) => {
   connection.query('SELECT * FROM documentos WHERE ESTADO_APROBACION IS NULL', (error, results) => {
     if (error) {
