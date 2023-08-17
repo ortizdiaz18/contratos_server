@@ -28,8 +28,29 @@ connection.connect(error => {
 });
 
 // Ruta para realizar consultas
-app.get('/consultar', (req, res) => {
-  connection.query('SELECT * FROM documentos', (error, results) => {
+app.get('/pendientes', (req, res) => {
+  connection.query('SELECT * FROM documentos WHERE ESTADO_APROBACION IS NULL', (error, results) => {
+    if (error) {
+      console.error('Error al realizar la consulta:', error);
+      res.status(500).json({ error: 'Error al realizar la consulta' });
+    } else {
+      res.json({"documentos":results});
+    }
+  });
+});
+app.get('/aprobados', (req, res) => {
+  connection.query('SELECT * FROM documentos WHERE ESTADO_APROBACION = 1 ', (error, results) => {
+    if (error) {
+      console.error('Error al realizar la consulta:', error);
+      res.status(500).json({ error: 'Error al realizar la consulta' });
+    } else {
+      res.json({"documentos":results});
+    }
+  });
+});
+
+app.get('/rechazados', (req, res) => {
+  connection.query('SELECT * FROM documentos WHERE ESTADO_APROBACION = 0 ', (error, results) => {
     if (error) {
       console.error('Error al realizar la consulta:', error);
       res.status(500).json({ error: 'Error al realizar la consulta' });
@@ -41,10 +62,10 @@ app.get('/consultar', (req, res) => {
 
 app.post('/insertar', function(req, res) {
   console.log(req.body);
-  let {tecnico, id_transaccion, timestamp, url_documento, url_certificado, hash_documento, url_selfie, otp, servicio, tipo_transaccion} = req.body;
+  let {tecnico,titular, id_transaccion, timestamp, url_documento, url_certificado, hash_documento, url_selfie, otp, servicio, tipo_transaccion} = req.body;
  
 
-  connection.query('INSERT INTO documentos (TECNICO, ID_TRANSACCION,TIMESTAMP, URL_DOCUMENTO, URL_CERTIFICADO,HASH_DOCUMENTO,URL_SELFIE,CODIGO_OTP,NUM_SERVICIO,tipo_transaccion_ID_TIPO_TRANSACCION) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [tecnico, id_transaccion, timestamp, url_documento, url_certificado, hash_documento, url_selfie, otp, servicio, tipo_transaccion], function(error, result) {
+  connection.query('INSERT INTO documentos (TECNICO,TITULAR, ID_TRANSACCION,TIMESTAMP, URL_DOCUMENTO, URL_CERTIFICADO,HASH_DOCUMENTO,URL_SELFIE,CODIGO_OTP,NUM_SERVICIO,tipo_transaccion_ID_TIPO_TRANSACCION) VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [tecnico, titular,id_transaccion, timestamp, url_documento, url_certificado, hash_documento, url_selfie, otp, servicio, tipo_transaccion], function(error, result) {
     if (error) {
       console.error('Error al insertar datos:', error);
       res.status(500).json({ error: 'Error al insertar datos' });
@@ -52,6 +73,41 @@ app.post('/insertar', function(req, res) {
       res.json({ message: 'Datos insertados correctamente', insertedId: result.insertId });
     }
   });
+});
+
+app.put('/actualizar/:id', (req, res) => {
+  const id = req.params.id;
+  const { estado, comentarios } = req.body;
+
+if(estado && comentarios){
+  connection.query(
+    `UPDATE documentos SET ESTADO_APROBACION = ${estado}, COMENTARIOS = "${comentarios}" WHERE  ID_TRANSACCION= "${id}"`,
+    [estado,comentarios, id],
+    (error, result) => {
+      if (error) {
+        console.error('Error al actualizar datos:', error);
+        res.status(500).json({ error: 'Error al actualizar datos' });
+      } else {
+        res.json({ message: 'Datos actualizados correctamente' });
+      }
+    }
+  );
+  
+}else{
+  connection.query(
+    `UPDATE documentos SET ESTADO_APROBACION = ${estado} WHERE  ID_TRANSACCION= "${id}"`,
+    [estado, id],
+    (error, result) => {
+      if (error) {
+        console.error('Error al actualizar datos:', error);
+        res.status(500).json({ error: 'Error al actualizar datos' });
+      } else {
+        res.json({ message: 'Datos actualizados correctamente' });
+      }
+    }
+  );
+
+}
 });
 
 app.listen(port, () => {
